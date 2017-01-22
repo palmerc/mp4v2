@@ -43,7 +43,7 @@ public:
 
 protected:
     // delegates implementation
-    bool utility_option( int, bool& );
+    bool utility_option( uint32_t, bool& );
     bool utility_job( JobContext& );
 
 private:
@@ -185,7 +185,7 @@ FileUtility::utility_job( JobContext& job )
 ///////////////////////////////////////////////////////////////////////////////
 
 bool
-FileUtility::utility_option( int code, bool& handled )
+FileUtility::utility_option( uint32_t code, bool& handled )
 {
     handled = true;
 

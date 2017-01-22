@@ -74,7 +74,7 @@ public:
 
 protected:
     // delegates implementation
-    bool utility_option( int, bool& );
+    bool utility_option( uint32_t, bool& );
     bool utility_job( JobContext& );
 
 private:
@@ -625,10 +625,10 @@ ChapterUtility::utility_job( JobContext& job )
 
 /** process command-line option
  *
- *  @see Utility::utility_option( int, bool& )
+ *  @see Utility::utility_option( uint32_t, bool& )
  */
 bool
-ChapterUtility::utility_option( int code, bool& handled )
+ChapterUtility::utility_option( uint32_t code, bool& handled )
 {
     handled = true;
 

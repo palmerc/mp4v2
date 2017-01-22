@@ -141,7 +141,7 @@ protected:
     bool dryrunAbort();
 
     // delegates
-    virtual bool utility_option( int, bool& ) = 0; //!< process command-line option
+    virtual bool utility_option( uint32_t, bool& ) = 0; //!< process command-line option
     virtual bool utility_job( JobContext& )   = 0; //!< process positional argument
 
 private:

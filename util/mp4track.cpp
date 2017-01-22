@@ -78,7 +78,7 @@ public:
 
 protected:
     // delegates implementation
-    bool utility_option( int, bool& );
+    bool utility_option( uint32_t, bool& );
     bool utility_job( JobContext& );
 
 private:
@@ -784,7 +784,7 @@ TrackUtility::utility_job( JobContext& job )
 ///////////////////////////////////////////////////////////////////////////////
 
 bool
-TrackUtility::utility_option( int code, bool& handled )
+TrackUtility::utility_option( uint32_t code, bool& handled )
 {
     handled = true;
 
