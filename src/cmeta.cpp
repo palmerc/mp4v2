@@ -58,6 +58,32 @@ MP4TagsAddArtwork( const MP4Tags* tags, MP4TagArtwork* artwork )
 
 ///////////////////////////////////////////////////////////////////////////////
 
+bool
+MP4TagsAddFreeform( const MP4Tags* tags, MP4TagFreeform* freeform )
+{
+    if( !tags || !tags->__handle || !freeform )
+        return false;
+
+    itmf::Tags& cpp = *static_cast<itmf::Tags*>(tags->__handle);
+    MP4Tags* c = const_cast<MP4Tags*>(tags);
+
+    try {
+        cpp.c_addFreeform( c, *freeform );
+        return true;
+    }
+    catch( Exception* x ) {
+        mp4v2::impl::log.errorf(*x);
+        delete x;
+    }
+    catch( ... ) {
+        mp4v2::impl::log.errorf("%s: failed", __FUNCTION__);
+    }
+
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 const MP4Tags*
 MP4TagsAlloc()
 {
@@ -188,6 +214,32 @@ MP4TagsRemoveArtwork( const MP4Tags* tags, uint32_t index )
 ///////////////////////////////////////////////////////////////////////////////
 
 bool
+MP4TagsRemoveFreeform( const MP4Tags* tags, uint32_t index )
+{
+    if( !tags || !tags->__handle )
+        return false;
+
+    itmf::Tags& cpp = *static_cast<itmf::Tags*>(tags->__handle);
+    MP4Tags* c = const_cast<MP4Tags*>(tags);
+
+    try {
+        cpp.c_removeFreeform( c, index );
+        return true;
+    }
+    catch( Exception* x ) {
+        mp4v2::impl::log.errorf(*x);
+        delete x;
+    }
+    catch( ... ) {
+        mp4v2::impl::log.errorf("%s: failed",__FUNCTION__);
+    }
+
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool
 MP4TagsSetArtwork( const MP4Tags* tags, uint32_t index, MP4TagArtwork* artwork )
 {
     if( !tags || !tags->__handle || !artwork)
@@ -198,6 +250,32 @@ MP4TagsSetArtwork( const MP4Tags* tags, uint32_t index, MP4TagArtwork* artwork )
 
     try {
         cpp.c_setArtwork( c, index, *artwork );
+        return true;
+    }
+    catch( Exception* x ) {
+        mp4v2::impl::log.errorf(*x);
+        delete x;
+    }
+    catch( ... ) {
+        mp4v2::impl::log.errorf("%s: failed",__FUNCTION__);
+    }
+
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool
+MP4TagsSetFreeform( const MP4Tags* tags, uint32_t index, MP4TagFreeform* freeform )
+{
+    if( !tags || !tags->__handle || !freeform)
+        return false;
+
+    itmf::Tags& cpp = *static_cast<itmf::Tags*>(tags->__handle);
+    MP4Tags* c = const_cast<MP4Tags*>(tags);
+
+    try {
+        cpp.c_setFreeform( c, index, *freeform );
         return true;
     }
     catch( Exception* x ) {

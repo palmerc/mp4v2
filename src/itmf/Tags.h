@@ -124,6 +124,7 @@ public:
     string sortTVShow;
 
     CoverArtBox::ItemList artwork;
+    FreeformBox::ItemList freeform;
 
     string copyright;
     string encodingTool;  
@@ -164,6 +165,10 @@ public:
     void c_setArtwork    ( MP4Tags*&, uint32_t, MP4TagArtwork& );
     void c_removeArtwork ( MP4Tags*&, uint32_t );
 
+    void c_addFreeform    ( MP4Tags*&, MP4TagFreeform& );
+    void c_setFreeform    ( MP4Tags*&, uint32_t, MP4TagFreeform& );
+    void c_removeFreeform ( MP4Tags*&, uint32_t );
+
     void c_setString  ( const char*, string&, const char*& );
     void c_setInteger ( const uint8_t*,  uint8_t&,  const uint8_t*& );
     void c_setInteger ( const uint16_t*, uint16_t&, const uint16_t*& );
@@ -201,6 +206,7 @@ private:
     void store  ( MP4File&, const string&, MP4ItmfBasicType, const void*, uint32_t );
 
     void updateArtworkShadow( MP4Tags*& );
+    void updateFreeform( MP4Tags*& );
 };
 
 ///////////////////////////////////////////////////////////////////////////////

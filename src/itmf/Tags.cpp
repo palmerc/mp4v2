@@ -54,6 +54,16 @@ Tags::c_addArtwork( MP4Tags*& tags, MP4TagArtwork& c_artwork )
 ///////////////////////////////////////////////////////////////////////////////
 
 void
+Tags::c_addFreeform( MP4Tags*& tags, MP4TagFreeform& c_freeform )
+{
+    freeform.resize( freeform.size() + 1 );
+    c_setFreeform( tags, (uint32_t)freeform.size() - 1, c_freeform );
+    updateFreeform( tags );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void
 Tags::c_alloc( MP4Tags*& tags )
 {
     tags = new MP4Tags();
@@ -154,6 +164,17 @@ Tags::c_fetch( MP4Tags*& tags, MP4FileHandle hFile )
 
         updateArtworkShadow( tags );
     }
+
+    {
+        FreeformBox::ItemList items;
+        if( FreeformBox::list( hFile, items )) {
+            freeform.clear();
+        } else {
+            freeform = items;
+        }
+
+        updateFreeform( tags );
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -179,6 +200,19 @@ Tags::c_removeArtwork( MP4Tags*& tags, uint32_t index )
 
     artwork.erase( artwork.begin() + index );
     updateArtworkShadow( tags );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void
+Tags::c_removeFreeform( MP4Tags*& tags, uint32_t index )
+{
+    if( !(index < freeform.size()) ) {
+        return;
+    }
+
+    freeform.erase( freeform.begin() + index );
+    updateFreeform( tags );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -220,6 +254,41 @@ Tags::c_setArtwork( MP4Tags*& tags, uint32_t index, MP4TagArtwork& c_artwork )
 
     memcpy( item.buffer, c_artwork.data, c_artwork.size );
     updateArtworkShadow( tags );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void
+Tags::c_setFreeform( MP4Tags*& tags, uint32_t index, MP4TagFreeform& c_freeform )
+{
+    if( !(index < freeform.size()) )
+        return;
+
+    FreeformBox::Item& item = freeform[index];
+
+    switch( c_freeform.type ) {
+        case MP4_FREEFORM_XML:
+            item.type = BT_XML;
+            break;
+
+        case MP4_FREEFORM_UTF8:
+            item.type = BT_UTF8;
+            break;
+
+        case MP4_FREEFORM_UNDEFINED:
+        default:
+            item.type = computeBasicType( c_freeform.data, c_freeform.size );
+            break;
+    }
+
+    item.name     = string(c_freeform.name);
+    item.mean     = string(c_freeform.mean);
+    item.buffer   = (uint8_t*)malloc( c_freeform.size );
+    item.size     = c_freeform.size;
+    item.autofree = true;
+
+    memcpy( item.buffer, c_freeform.data, c_freeform.size );
+    updateFreeform( tags );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -404,6 +473,14 @@ Tags::c_store( MP4Tags*& tags, MP4FileHandle hFile )
         const CoverArtBox::ItemList::size_type max = artwork.size();
         for( CoverArtBox::ItemList::size_type i = 0; i < max; i++ )
             CoverArtBox::add( hFile, artwork[i] );
+    }
+
+    {
+        FreeformBox::remove( hFile );
+        const FreeformBox::ItemList::size_type max = freeform.size();
+        for( FreeformBox::ItemList::size_type i = 0; i < max; i++ ) {
+            FreeformBox::add(hFile, freeform[i]);
+        }
     }
 }
 
@@ -832,6 +909,46 @@ Tags::updateArtworkShadow( MP4Tags*& tags )
 
     tags->artwork      = cartwork;
     tags->artworkCount = max;
+}
+
+void
+Tags::updateFreeform( MP4Tags*& tags )
+{
+    if( tags->freeform ) {
+        delete[] tags->freeform;
+        tags->freeform = NULL;
+        tags->freeformCount = 0;
+    }
+
+    if( freeform.empty() )
+        return;
+
+    MP4TagFreeform* const cfreeform = new MP4TagFreeform[ freeform.size() ];
+    uint32_t max = (uint32_t)freeform.size();
+
+    for( uint32_t i = 0; i < max; i++ ) {
+        MP4TagFreeform& a = cfreeform[i];
+        FreeformBox::Item& item = freeform[i];
+
+        a.data = item.buffer;
+        a.size = item.size;
+
+        switch( item.type ) {
+            case BT_UTF8:
+                a.type = MP4_FREEFORM_UTF8;
+                break;
+            case BT_XML:
+                a.type = MP4_FREEFORM_XML;
+                break;
+
+            default:
+                a.type = MP4_FREEFORM_UNDEFINED;
+                break;
+        }
+    }
+
+    tags->freeform      = cfreeform;
+    tags->freeformCount = max;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

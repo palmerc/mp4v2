@@ -47,6 +47,7 @@ set(HEADER_FILES
         src/bmff/impl.h
         src/bmff/typebmff.h
         src/itmf/CoverArtBox.h
+        src/itmf/FreeformBox.h
         src/itmf/generic.h
         src/itmf/impl.h
         src/itmf/itmf.h
@@ -97,6 +98,7 @@ set(SOURCE_FILES
         libutil/Utility.cpp
         src/bmff/typebmff.cpp
         src/itmf/CoverArtBox.cpp
+        src/itmf/FreeformBox.cpp
         src/itmf/generic.cpp
         src/itmf/Tags.cpp
         src/itmf/type.cpp

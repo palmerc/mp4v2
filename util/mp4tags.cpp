@@ -34,6 +34,7 @@ using namespace mp4v2::util;
 #define OPT_DISKS        'D'
 #define OPT_ENCODEDBY    'e'
 #define OPT_TOOL         'E'
+#define OPT_FREEFORM     'f'
 #define OPT_GENRE        'g'
 #define OPT_GROUPING     'G'
 #define OPT_HD           'H'
@@ -63,7 +64,7 @@ using namespace mp4v2::util;
 #define OPT_ARTISTID     'z'
 #define OPT_COMPOSERID   'Z'
 
-#define OPT_STRING  "r:A:a:b:c:C:d:D:e:E:g:G:H:i:I:j:l:L:m:M:n:N:o:O:p:P:B:R:s:S:t:T:x:X:w:y:z:Z:"
+#define OPT_STRING  "r:A:a:b:c:C:d:D:e:E:f:g:G:H:i:I:j:l:L:m:M:n:N:o:O:p:P:B:R:s:S:t:T:x:X:w:y:z:Z:"
 
 #define ELEMENT_OF(x,i) x[int(i)]
 
@@ -82,6 +83,7 @@ static const char* const help_text =
     "  -D, -disks       NUM  Set the number of disks\n"
     "  -e, -encodedby   STR  Set the name of the person or company who encoded the file\n"
     "  -E, -tool        STR  Set the software used for encoding\n"
+    "  -f, -freeform    STR  Set freeform metadata\n"
     "  -g, -genre       STR  Set the genre name\n"
     "  -G, -grouping    STR  Set the grouping name\n"
     "  -H, -hdvideo     NUM  Set the HD flag (1\\0)\n"
@@ -113,8 +115,16 @@ static const char* const help_text =
     "  -r, -remove      STR  Remove tags by code (e.g. \"-r cs\"\n"
     "                        removes the comment and song tags)";
 
-extern "C" int
-    main( int argc, char** argv )
+static void split(const std::string &s, char delim, std::vector<std::string> &elems) {
+    std::stringstream ss;
+    ss.str(s);
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+        elems.push_back(item);
+    }
+}
+
+extern "C" int main( int argc, char** argv )
 {
     const prog::Option long_options[] = {
         { "help",        prog::Option::NO_ARG,       0, OPT_HELP         },
@@ -126,6 +136,7 @@ extern "C" int
         { "disk",        prog::Option::REQUIRED_ARG, 0, OPT_DISK         },
         { "disks",       prog::Option::REQUIRED_ARG, 0, OPT_DISKS        },
         { "encodedby",   prog::Option::REQUIRED_ARG, 0, OPT_ENCODEDBY    },
+        { "freeform",    prog::Option::REQUIRED_ARG, 0, OPT_FREEFORM     },
         { "tool",        prog::Option::REQUIRED_ARG, 0, OPT_TOOL         },
         { "genre",       prog::Option::REQUIRED_ARG, 0, OPT_GENRE        },
         { "grouping",    prog::Option::REQUIRED_ARG, 0, OPT_GROUPING     },
@@ -293,6 +304,11 @@ extern "C" int
                     case OPT_ENCODEDBY:
                         MP4TagsSetEncodedBy( mdata, NULL );
                         break;
+                    case OPT_FREEFORM:
+                        if( mdata->freeformCount ) {
+                            MP4TagsRemoveFreeform(mdata, 0);
+                        }
+                        break;
                     case OPT_TOOL:
                         MP4TagsSetEncodingTool( mdata, NULL );
                         break;
@@ -431,25 +447,56 @@ extern "C" int
             if ( tags[i] ) {
                 switch ( i ) {
                     case OPT_ALBUM:
-                        MP4TagsSetAlbum( mdata, tags[i] );
+                        MP4TagsSetAlbum(mdata, tags[i]);
                         break;
                     case OPT_ARTIST:
-                        MP4TagsSetArtist( mdata, tags[i] );
+                        MP4TagsSetArtist(mdata, tags[i]);
                         break;
-                    case OPT_TEMPO:
-                    {
+                    case OPT_TEMPO: {
                         uint16_t value = static_cast<uint16_t>( nums[i] );
-                        MP4TagsSetTempo( mdata, &value );
+                        MP4TagsSetTempo(mdata, &value);
                         break;
                     }
                     case OPT_COMMENT:
-                        MP4TagsSetComments( mdata, tags[i] );
+                        MP4TagsSetComments(mdata, tags[i]);
                         break;
                     case OPT_COPYRIGHT:
-                        MP4TagsSetCopyright( mdata, tags[i] );
+                        MP4TagsSetCopyright(mdata, tags[i]);
                         break;
                     case OPT_ENCODEDBY:
-                        MP4TagsSetEncodedBy( mdata, tags[i] );
+                        MP4TagsSetEncodedBy(mdata, tags[i]);
+                        break;
+                    case OPT_FREEFORM: {
+                        string tag = string(tags[i]);
+                        vector<string> components;
+                        char delimiter = ':';
+                        split(tag, delimiter, components);
+                        string mean(components[0]);
+                        string name(components[1]);
+                        string filename(components[2]);
+                        File in(filename, File::MODE_READ);
+                        if (!in.open()) {
+                            MP4TagFreeform freeform;
+                            freeform.mean  = mean.c_str();
+                            freeform.name  = name.c_str();
+                            freeform.size  = (uint32_t) in.size;
+                            freeform.data  = malloc(in.size);
+                            freeform.type  = MP4_FREEFORM_UTF8;
+
+                            File::Size nin;
+                            if (!in.read(freeform.data, freeform.size, nin) && nin == freeform.size) {
+                                if (mdata->freeformCount) {
+                                    MP4TagsRemoveFreeform(mdata, 0);
+                                }
+                                MP4TagsAddFreeform(mdata, &freeform);
+                            }
+
+                            free(freeform.data);
+                            in.close();
+                        } else {
+                            fprintf(stderr, "Freeform file %s not found\n", tags[i]);
+                        }
+                    }
                         break;
                     case OPT_TOOL:
                         MP4TagsSetEncodingTool( mdata, tags[i] );
@@ -540,6 +587,7 @@ extern "C" int
                             fprintf( stderr, "Art file %s not found\n", tags[i] );
                         }
                     }
+                        break;
                     case OPT_ALBUM_ARTIST:
                         MP4TagsSetAlbumArtist( mdata, tags[i] );
                         break;

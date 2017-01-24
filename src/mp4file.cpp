@@ -1112,7 +1112,7 @@ void MP4File::AddDataReference(MP4TrackId trackId, const char* url)
         pUrlAtom->SetFlags(pUrlAtom->GetFlags() & 0xFFFFFE);
 
         MP4StringProperty* pUrlProperty = NULL;
-        (void)pUrlAtom->FindProperty("url .location",
+        (void)pUrlAtom->FindProperty("url.location",
                                      (MP4Property**)&pUrlProperty);
         ASSERT(pUrlProperty);
         pUrlProperty->SetValue(url);

@@ -83,6 +83,22 @@ typedef struct MP4TagDisk_s
     uint16_t total;
 } MP4TagDisk;
 
+typedef enum MP4TagFreeformType_e
+{
+    MP4_FREEFORM_UNDEFINED = 0,
+    MP4_FREEFORM_XML       = 1,
+    MP4_FREEFORM_UTF8      = 2
+} MP4TagFreeformType;
+
+typedef struct MP4TagFreeform_s
+{
+    const char*        name;
+    const char*        mean;
+    void*              data;
+    uint32_t           size;
+    MP4TagFreeformType type;
+} MP4TagFreeform;
+
 /** Tags <b>convenience</b> structure.
  *
  *  This structure is used in the tags convenience API which allows for
@@ -133,6 +149,9 @@ typedef struct MP4Tags_s
 
     const MP4TagArtwork* artwork;
     uint32_t             artworkCount;
+
+    const MP4TagFreeform* freeform;
+    uint32_t              freeformCount;
 
     const char* copyright;
     const char* encodingTool;
@@ -259,6 +278,10 @@ MP4V2_EXPORT bool MP4TagsSetSortTVShow      ( const MP4Tags*, const char* );
 MP4V2_EXPORT bool MP4TagsAddArtwork         ( const MP4Tags*, MP4TagArtwork* );
 MP4V2_EXPORT bool MP4TagsSetArtwork         ( const MP4Tags*, uint32_t, MP4TagArtwork* );
 MP4V2_EXPORT bool MP4TagsRemoveArtwork      ( const MP4Tags*, uint32_t );
+
+MP4V2_EXPORT bool MP4TagsAddFreeform        ( const MP4Tags*, MP4TagFreeform* );
+MP4V2_EXPORT bool MP4TagsSetFreeform        ( const MP4Tags*, uint32_t, MP4TagFreeform* );
+MP4V2_EXPORT bool MP4TagsRemoveFreeform     ( const MP4Tags*, uint32_t );
 
 MP4V2_EXPORT bool MP4TagsSetCopyright       ( const MP4Tags*, const char* );
 MP4V2_EXPORT bool MP4TagsSetEncodingTool    ( const MP4Tags*, const char* );
